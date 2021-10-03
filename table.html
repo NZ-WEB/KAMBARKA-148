@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Table</title>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.1/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/datetime/1.1.1/css/dataTables.dateTime.min.css">
+    <style>
+        body {
+            background: #303030;
+        }
+
+        .dataTables_wrapper {
+            min-height: 442px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .dataTables_wrapper::after {
+            content: none;
+        }
+
+        .table-container h1 {
+            color: #fff;
+        }
+
+        .filters {
+            padding: 15px;
+            background: #212121;
+            color: #fff;
+        }
+
+        .filter_date-period {
+            margin-left: 70px;
+        }
+
+        .filters_box {
+            display: flex;
+        }
+
+        .filter_date-period span {
+            display: inline-block;
+            color: #2171D2;
+            border-bottom: 1px dashed #2171D2;
+            margin-right: 5px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: .2s;
+        }
+
+        .filter_date-period span:hover,
+        .filter_date-period span.active {
+            color: #fff;
+            border-bottom: 1px dashed #fff;
+            transition: .2s;
+        }
+
+        .filters_box-date input {
+            padding: 4px;
+            border: none;
+            background: transparent;
+            border-bottom: 1px solid #999;
+            color: #999;
+            font-size: 1.1em;
+            outline: none;
+        }
+
+        .filters_box-sign {
+            margin-left: 15px;
+            margin-top: 4px;
+        }
+
+        .filters_box-sign select {
+            background: transparent;
+            border: none;
+            color: #fff;
+            border-bottom: 1px solid #777777;
+            cursor: pointer;
+        }
+
+        .filters_box-show button {
+            margin-left: 15px;
+            padding: 4px 8px;
+            color: #fff;
+            cursor: pointer;
+            background: #2196F3;
+            border: none;
+            border-radius: 3px;
+        }
+
+        .table-container {
+            font-family: "Helvetica Neue", Helvetica, Arial;
+            font-size: 14px;
+            line-height: 20px;
+            font-weight: 400;
+            color: #3b3b3b;
+            margin: 5px;
+        }
+
+        .table-container table {
+            border-radius: 5px 5px 0 0;
+            border-bottom: none !important;
+            display: inline-table;
+            width: 100% !important;
+            overflow: hidden;
+            color: #fff !important;
+        }
+
+        .table-container table.dataTable tbody tr {
+            background: #303030;
+        }
+
+        .table-container thead {
+            background: #777777;
+        }
+
+        .table-container thead th {
+            text-align: left;
+            border-right: 1px solid #303030;
+            border-bottom: none !important;
+        }
+
+        .table-container thead th:last-child {
+            border-right: none;
+        }
+
+        .table-container tbody td {
+            padding-left: 18px !important;
+        }
+
+        .table-container tbody tr td:first-child {
+            color: tomato;
+            font-weight: bold;
+        }
+
+        .dataTables_wrapper .dataTables_paginate {
+            padding: 0;
+            width: 100%;
+            text-align: left;
+            border-top: 1px solid #777777;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            color: #fff !important;
+            padding: 0 10px;
+            border-radius: 0;
+            height: 40px;
+            line-height: 40px;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+            background: #777777;
+            color: #fff !important;
+            border-color: #777777;
+        }
+
+
+        /*hide*/
+        .dataTables_length,
+        .dataTables_info {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div class="table-container">
+    <h1>Оплата проезда</h1>
+
+    <div class="filters">
+        <div class="filter_date-period">
+            <span data-period='today'>сегодня</span>
+            <span data-period='yesterday'>вчера</span>
+            <span data-period='week'>за 7 дней</span>
+            <span data-period='month'>за 30 дней</span>
+        </div>
+        <div class="filters_box">
+            <div class="filters_box-date">
+                <span>Период с:</span>
+                <input type="text" id="min" name="min">
+                <span>по:</span>
+                <input type="text" id="max" name="max">
+            </div>
+
+            <div class="filters_box-sign">
+                <span>Признак подозрительности - </span>
+                <select name="select">
+                    <option value="val0"></option>
+                    <option value="val1">Сквозной проезд</option>
+                    <option value="val2">Изменение класс</option>
+                    <option value="val2">Бесплатный проезд</option>
+                </select>
+            </div>
+            <div class="filters_box-show">
+                <button>показать</button>
+            </div>
+        </div>
+    </div>
+
+    <table id="table_id"></table>
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.js"></script>
+<!-- https://www.datatables.net/manual/ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+<script src="https://cdn.datatables.net/datetime/1.1.1/js/dataTables.dateTime.min.js"></script>
+
+
+<script>
+
+  /**
+  * Для теста были использованы файлы:
+  * response.txt - имитация первого запроса на сервер
+  * responseSecond - имитация второго запроса для обновления данных в таблице, учитывая выбранные дату и время
+  */
+
+  $(document).ready(function () {
+    let table = $('#table_id').DataTable({
+      ajax: addLoadingData("./response.txt"), //url
+      columns: columns,
+      ordering: false,
+      searching: false,
+      language: i18nTable,
+      initComplete: function () {
+        addDataPicker(table);
+        eventDatePeriod();
+        addDblClick(table);
+        updateData("./responseSecond.txt", table); //url
+      }
+    });
+  });
+
+  function eventDatePeriod() {
+    document.querySelector('.filter_date-period')
+      .onclick = e => {
+      let period = e.target.dataset.period;
+
+      if (!period) return;
+
+      clearDatePariod();
+      $('#min, #max').val('');
+      insertPeriod(period);
+      e.target.classList.add('active');
+    }
+
+    document.querySelectorAll('.filter_date-period span')[0].classList.add('active');
+  }
+
+  function insertPeriod(period) {
+    let f = 'DD.MM.YYYY';
+    let mn = $('#min');
+    let mx = $('#max');
+
+    switch (period) {
+      case 'today':
+        mn.val(moment().format(f));
+        mx.val(moment().format(f));
+        break;
+      case 'yesterday':
+        mn.val(moment().subtract(1, 'days').format(f));
+        mx.val(moment().subtract(1, 'days').format(f));
+        break;
+      case 'week':
+        mn.val(moment().subtract(7, 'days').format(f));
+        mx.val(moment().format(f));
+        break;
+      case 'month':
+        mn.val(moment().subtract(30, 'days').format(f));
+        mx.val(moment().format(f));
+        break;
+    }
+
+    mn.trigger('change');
+  }
+
+  function addDataPicker(table) {
+    /*
+    *  Cмотреть библиотеку datetime.js
+    *  https://datatables.net/extensions/datetime/examples/initialisation/datetime.html
+    */
+
+    const param = {
+      format: 'DD.MM.YYYY',
+      i18n: i18nDate
+    }
+
+    $('#min').val(moment().format(param.format));
+    $('#max').val(moment().format(param.format));
+
+
+    new DateTime($('#min'), {...param});
+    new DateTime($('#max'), {...param});
+
+    $('#min, #max').on('change', () => {
+      clearDatePariod();
+
+    });
+  }
+
+  function clearDatePariod() {
+    $('.filter_date-period span.active').removeClass('active');
+  }
+
+  function addDblClick($table) {
+    document
+      .querySelector('#table_id tbody')
+      .addEventListener('dblclick', e => {
+        let data = $table.row(e.target).data();
+        window.open(data.link, '_blank');
+      });
+  }
+
+  /*
+  * addLoadingData(url)
+  * url — параметр для POST запроса
+  * Возвращает — объект конфигурации ajax с внесёнными изменениями в массив ответа сервера
+  */
+
+  function addLoadingData(url) {
+    let mn,
+      mx;
+
+    if ($('#min').val() && $('#max').val()) {
+      mn = moment($('#min').val(), 'DDMMYYY').format();
+      mx = moment($('#max').val(), 'DDMMYYY').format();
+    } else if ($('#min').val()) {
+      mn = moment($('#min').val(), 'DDMMYYY').format();
+      mx = moment($('#min').val(), 'DDMMYYY').add(1, 'days').format();
+    } else {
+      mn = moment().format();
+      mx = moment().format();
+    }
+
+    return {
+      "url": url,
+      "type": "POST",
+      "data": {
+        "start": mn.toString(),
+        "end": mx.toString(),
+      },
+      "dataSrc": function (response) {
+        response.data.forEach(i => {
+          if (i.suspicion_details === '' || i.suspicion_details === null) {
+            i[' '] = '';
+          } else {
+            i[' '] = '⚠';
+          }
+        })
+        return response.data;
+      }
+    };
+  }
+
+  /*
+  * updateData(url)
+  * url — параметр для POST запроса
+  * $table - обновляемая табоица
+  * отправляет запрос на сервер и выбранными пользователем датой и временем, вызывает функцию updateTable для отрисовки таблицы с новым контентом
+  */
+
+  function updateData(url, $table) {
+    document.querySelector('.filters_box-show')
+      .onclick = e => {
+      e.preventDefault();
+      $.ajax(addLoadingData(url))
+        .then(data => {
+          updateTable($table, JSON.parse(data))
+        })
+        .catch(err => new Error(err));
+    }
+  }
+
+  /*
+  * updateTable($table, data)
+  * $table — изменяемая таблица
+  * data — новые данные
+  * функция перересовывает исходную таблицу изменяя данные
+  */
+
+  function updateTable($table, data) {
+    $table.clear().draw();
+    data.data.forEach(i => {
+      if (i.suspicion_details === '' || i.suspicion_details === null) {
+        i[' '] = '';
+      } else {
+        i[' '] = '⚠';
+      }
+    })
+    $table.rows.add(data.data).draw()
+  }
+
+  /*CONFIGS*/
+  const i18nDate = {
+    previous: 'Предыдущий',
+    next: 'Следующий',
+    months: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
+    weekdays: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб']
+  };
+
+  const i18nTable = {
+    "decimal": "",
+    "emptyTable": "Нет данных",
+    "info": "Показано _START_ по _END_ из _TOTAL_",
+    "infoEmpty": "Показано 0 по 0 из 0",
+    "infoFiltered": "(фильтр из _MAX_)",
+    "infoPostFix": "",
+    "thousands": ",",
+    "lengthMenu": "Показывать по _MENU_",
+    "loadingRecords": "Загружаю...",
+    "processing": "Загружаю...",
+    "search": "Поиск:",
+    "zeroRecords": "Ничего не найдено",
+    "paginate": {
+      "first": "Первая",
+      "last": "Последняя",
+      "next": "Следующая",
+      "previous": "Предыдущая"
+    },
+    "aria": {
+      "sortAscending": ": activate to sort column ascending",
+      "sortDescending": ": activate to sort column descending"
+    }
+  };
+
+  const columns = [
+    {"data": " ",},
+    {"data": "id", "title": "№"},
+    {"data": "datetime", "title": "Время"},
+    {"data": "classification", "title": "Класс"},
+    {"data": "sum", "title": "Сумма"},
+    {"data": "cashier", "title": "Кассир"},
+    {"data": "payment_type", "title": "Источни оплаты"},
+    {"data": "suspicion_details", "title": "Признак подозрительности"},
+    {"data": "link", "visible": false},
+  ];
+
+
+</script>
+</body>
+</html>
