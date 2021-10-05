@@ -209,31 +209,35 @@
 <!-- https://www.datatables.net/manual/ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
 <script src="https://cdn.datatables.net/datetime/1.1.1/js/dataTables.dateTime.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.4/moment.min.js"></script>
+<script src="https://cdn.datatables.net/plug-ins/1.11.3/sorting/datetime-moment.js"></script>
 
 
 <script>
 
-  /**
-  * Для теста были использованы файлы:
-  * response.txt - имитация первого запроса на сервер
-  * responseSecond - имитация второго запроса для обновления данных в таблице, учитывая выбранные дату и время
-  */
-
   $(document).ready(function () {
+    $.fn.dataTable.moment();
+
     let table = $('#table_id').DataTable({
-      ajax: addLoadingData("./response.txt"), //url
+      ajax: addLoadingData("https://api.mockaroo.com/api/8da7e510?count=1000&key=a963e0b0"), //url
       columns: columns,
-      ordering: false,
       searching: false,
+      order: [
+        2, 'desc'
+      ],
       language: i18nTable,
       initComplete: function () {
         addDataPicker(table);
         eventDatePeriod();
         addDblClick(table);
-        updateData("./responseSecond.txt", table); //url
+        updateData("https://api.mockaroo.com/api/8da7e510?count=1000&key=a963e0b0", table); //url
       }
     });
+
+    table
+      .order([2, 'desc'])
   });
+
 
   function eventDatePeriod() {
     document.querySelector('.filter_date-period')
@@ -344,14 +348,14 @@
         "end": mx.toString(),
       },
       "dataSrc": function (response) {
-        response.data.forEach(i => {
+        response.forEach(i => {
           if (i.suspicion_details === '' || i.suspicion_details === null) {
             i[' '] = '';
           } else {
             i[' '] = '⚠';
           }
-        })
-        return response.data;
+        });
+        return sortByDateAndTime(response);
       }
     };
   }
@@ -369,29 +373,18 @@
       e.preventDefault();
       $.ajax(addLoadingData(url))
         .then(data => {
-          updateTable($table, JSON.parse(data))
+          $table.clear().draw();
+          data.forEach(i => {
+            if (i.suspicion_details === '' || i.suspicion_details === null) {
+              i[' '] = '';
+            } else {
+              i[' '] = '⚠';
+            }
+          });
+          $table.rows.add(sortByDateAndTime(data)).draw()
         })
         .catch(err => new Error(err));
     }
-  }
-
-  /*
-  * updateTable($table, data)
-  * $table — изменяемая таблица
-  * data — новые данные
-  * функция перересовывает исходную таблицу изменяя данные
-  */
-
-  function updateTable($table, data) {
-    $table.clear().draw();
-    data.data.forEach(i => {
-      if (i.suspicion_details === '' || i.suspicion_details === null) {
-        i[' '] = '';
-      } else {
-        i[' '] = '⚠';
-      }
-    })
-    $table.rows.add(data.data).draw()
   }
 
   /*CONFIGS*/
@@ -428,15 +421,15 @@
   };
 
   const columns = [
-    {"data": " ",},
-    {"data": "id", "title": "№"},
+    {"data": " ", "orderable": false},
+    {"data": "id", "title": "№", "orderable": false},
     {"data": "datetime", "title": "Время"},
-    {"data": "classification", "title": "Класс"},
-    {"data": "sum", "title": "Сумма"},
-    {"data": "cashier", "title": "Кассир"},
-    {"data": "payment_type", "title": "Источни оплаты"},
-    {"data": "suspicion_details", "title": "Признак подозрительности"},
-    {"data": "link", "visible": false},
+    {"data": "classification", "title": "Класс", "orderable": false},
+    {"data": "sum", "title": "Сумма","orderable": false},
+    {"data": "cashier", "title": "Кассир", "orderable": false},
+    {"data": "payment_type", "title": "Источни оплаты", "orderable": false},
+    {"data": "suspicion_details", "title": "Признак подозрительности", "orderable": false},
+    {"data": "link", "visible": false, "orderable": false},
   ];
 
 
